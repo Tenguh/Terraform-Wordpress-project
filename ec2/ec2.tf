@@ -44,6 +44,9 @@ resource "aws_instance" "wordpress" {
   security_groups = [aws_security_group.ec2_sg.id]
   associate_public_ip_address = true
   
+  tags = {
+    Name = "WP-instance"
+  }
 }
   
     
