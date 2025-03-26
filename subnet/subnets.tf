@@ -7,10 +7,11 @@ resource "aws_vpc" "wordpress_vpc" {
 }
 
 #public subnets
-resource "aws_subnet" "public1" {
+resource "aws_subnet" "public1" {    #frontend subnet
   vpc_id     = aws_vpc.wordpress_vpc.id
   cidr_block = var.public1_cidr_block
   availability_zone = var.public1_availability_zone
+  map_public_ip_on_launch = false 
 
   tags = {
     Name = "wp-pub1"
@@ -18,7 +19,7 @@ resource "aws_subnet" "public1" {
 }
 
 #creating Private Subnets
-resource "aws_subnet" "private1" {
+resource "aws_subnet" "private1" { #backend subnet
   vpc_id     = aws_vpc.wordpress_vpc.id
   cidr_block = var.private1_cidr_block
   availability_zone = var.private1_availability_zone

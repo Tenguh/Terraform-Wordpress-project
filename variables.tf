@@ -6,3 +6,5 @@ variable "private1_availability_zone" {}
 variable "private2_availability_zone" {}
 variable "public1_availability_zone" {}
 variable "vpc_cidr_block" {}
+variable "password" {}
+variable "instance_class" {}

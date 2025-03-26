@@ -4,8 +4,6 @@ module "ec2" {
   key_pair_name = var.key_pair_name
   vpc_id        = module.subnet.vpc_id
   subnet_id     = module.subnet.public1_subnet_id
-
-
 }
 
 module "subnet" {
@@ -20,5 +18,13 @@ module "subnet" {
 
 }
 
-
+module "database" {
+  source         = "./database"
+  password       = var.password
+  instance_class = var.instance_class
+  #subnet_ids = [module.subnet.public1_subnet_id, module.subnet.private1_subnet_id]
+  private1_subnet_id  = module.subnet.private1_subnet_id
+  private2_subnet_id = module.subnet.private2_subnet_id
+  public1_subnet_id = module.subnet.public1_subnet_id
+}
 
