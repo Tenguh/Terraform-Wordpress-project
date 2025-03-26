@@ -16,3 +16,9 @@ output "vpc_id" {
   value = aws_vpc.wordpress_vpc.id
 }
 
+output "private_subnet_ids" {
+  value = [aws_subnet.private1.id, aws_subnet.private2.id] 
+
+}
+
+

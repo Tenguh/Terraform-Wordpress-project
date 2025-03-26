@@ -39,14 +39,18 @@ resource "aws_instance" "wordpress" {
   ami                    = "ami-0b0dcb5067f052a63"
   instance_type          = "t3.small"
   key_name               = "harriet-key"
-  user_data              = file("script/userdata.sh")
+  user_data              = templatefile("scripts/userdata.sh", { mount_script = file("scripts/mounttarget.sh") })
+
   subnet_id = var.subnet_id
   security_groups = [aws_security_group.ec2_sg.id]
   associate_public_ip_address = true
   
+   
   tags = {
     Name = "WP-instance"
   }
 }
+
+
   
     

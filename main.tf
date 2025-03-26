@@ -28,3 +28,9 @@ module "database" {
   public1_subnet_id = module.subnet.public1_subnet_id
 }
 
+module "efs" {
+  source     = "./efs"
+  vpc_id = module.subnet.vpc_id 
+  subnet_ids = module.subnet.private_subnet_ids 
+}
+
