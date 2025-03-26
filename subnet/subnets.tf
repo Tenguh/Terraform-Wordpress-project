@@ -1,8 +1,16 @@
+resource "aws_vpc" "wordpress_vpc" {
+  cidr_block       = var.vpc_cidr_block
+
+  tags = {
+    Name = "wp-vpc"
+  }
+}
+
 #public subnets
 resource "aws_subnet" "public1" {
   vpc_id     = aws_vpc.wordpress_vpc.id
-  cidr_block = "10.80.1.0/24"
-  availability_zone = "us-east_1a"
+  cidr_block = var.public1_cidr_block
+  availability_zone = var.public1_availability_zone
 
   tags = {
     Name = "wp-pub1"
@@ -12,18 +20,18 @@ resource "aws_subnet" "public1" {
 #creating Private Subnets
 resource "aws_subnet" "private1" {
   vpc_id     = aws_vpc.wordpress_vpc.id
-  cidr_block = "10.80.2.0/24"
-  availability_zone = "us-east_1a"
+  cidr_block = var.private1_cidr_block
+  availability_zone = var.private1_availability_zone
 
   tags = {
     Name = "wp-pvt1"
   }
 }
 
-resource "aws_subnet" "public1" {
+resource "aws_subnet" "private2" {
   vpc_id     = aws_vpc.wordpress_vpc.id
-  cidr_block = "10.80.3.0/24"
-  availability_zone = "us-east_1b"
+  cidr_block = var.private2_cidr_block
+  availability_zone = var.private2_availability_zone
 
   tags = {
     Name = "wp-pvt2"
@@ -58,7 +66,7 @@ resource "aws_route_table" "pub-rtb" {
   vpc_id = aws_vpc.wordpress_vpc.id
 
   route {
-    cidr_block = "0.0.1.0/0"
+    cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
 
@@ -94,16 +102,16 @@ resource "aws_route_table" "pvt_rtb" {
 
 #route table association
 resource "aws_route_table_association" "pub1" {
-  subnet_id      = aws_subnet.pub1.id
+  subnet_id      = aws_subnet.public1.id
   route_table_id = aws_route_table.pub-rtb.id
 }
 
 resource "aws_route_table_association" "pvt1" {
-  subnet_id      = aws_subnet.pvt1.id
+  subnet_id      = aws_subnet.private1.id
   route_table_id = aws_route_table.pvt_rtb.id
 }
 
 resource "aws_route_table_association" "pvt2" {
-  subnet_id      = aws_subnet.pvt2.id
+  subnet_id      = aws_subnet.private2.id
   route_table_id = aws_route_table.pvt_rtb.id
 }

@@ -2,7 +2,7 @@
 resource "aws_security_group" "ec2_sg" {
     name = "ec2_sg"
   description = "Allow  traffic for ssh"
-  vpc_id = aws_vpc.wordpress_vpc.id
+  vpc_id = var.vpc_id
 
 
   ingress {
@@ -40,9 +40,10 @@ resource "aws_instance" "wordpress" {
   instance_type          = "t3.small"
   key_name               = "harriet-key"
   user_data              = file("script/userdata.sh")
-  subnet_id = aws_subnet.pub1.id
+  subnet_id = var.subnet_id
   security_groups = [aws_security_group.ec2_sg.id]
   associate_public_ip_address = true
+  
 }
   
     
