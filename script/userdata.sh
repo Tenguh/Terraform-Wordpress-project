@@ -34,9 +34,9 @@ chmod -R 755 /var/www/html
 
 # Configure wp-config.php
 cp wp-config-sample.php wp-config.php
-sed -i "s/database_name_here/wordpress/" wp-config.php
-sed -i "s/username_here/wp_user/" wp-config.php
-sed -i "s/password_here/wp_password/" wp-config.php
+sed -i "s/myrdsinstance/wordpress/" wp-config.php
+sed -i "s/harriet/wp_user/" wp-config.php
+sed -i "s/mydbpassword/wp_password/" wp-config.php
 
 # Restart Apache
 systemctl restart apache2
