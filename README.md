@@ -12,3 +12,5 @@
 ![myrdsinstance](image-7.png)
 ![db-subnet-group](image-8.png)
 ![wp-efs](image.png)
+![efs-sg](image-1.png)
+![mounttarget](image-2.png)
