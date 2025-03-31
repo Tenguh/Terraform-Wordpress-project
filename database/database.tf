@@ -16,18 +16,23 @@ resource "aws_security_group" "rds_sg" {
 }
 
 #create a RDS Database Instance
-resource "aws_db_instance" "myinstance" {
+resource "aws_db_instance" "myrds" {
   engine               = "mysql"
   identifier           = "myrdsinstance"
   allocated_storage    =  20
   engine_version       = "8.0"
   instance_class       = var.instance_class
+  db_name = var.db_name
   username             = "harriet"
   password             = var.password
- # parameter_group_name = "default.mysql5.7"
+  parameter_group_name = "default.mysql8.0"
   vpc_security_group_ids = ["${aws_security_group.rds_sg.id}"]
   skip_final_snapshot  = true
   publicly_accessible =  true
+
+  tags = {
+    Name = "wordpressdb"
+  }
 }
 
 resource "aws_db_subnet_group" "subnet_group" {

@@ -8,3 +8,4 @@ variable "public1_availability_zone" {}
 variable "vpc_cidr_block" {}
 variable "password" {}
 variable "instance_class" {}
+variable "db_name" {}
