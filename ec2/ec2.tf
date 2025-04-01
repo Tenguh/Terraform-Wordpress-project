@@ -64,7 +64,11 @@ resource "aws_instance" "wordpress" {
   ami                    = data.aws_ami.latest-amazon-linux-image.id
   instance_type          = "t3.small"
   key_name               = "harriet-key"
-  user_data              = templatefile("scripts/userdata.sh", { mount_script = file("scripts/mounttarget.sh") })
+  user_data = templatefile("scripts/userdata.sh", { 
+  endpoint      = var.db_endpoint,
+  mount_script = file("scripts/mounttarget.sh")
+})
+
   subnet_id = var.subnet_id
   security_groups = [aws_security_group.ec2_sg.id]
   associate_public_ip_address = true

@@ -29,7 +29,7 @@ cp wp-config-sample.php wp-config.php
 sed -i "s/database_name_here/wordpress/" wp-config.php
 sed -i "s/username_here/harriet/" wp-config.php
 sed -i "s/password_here/mydbpassword/" wp-config.php
-sed -i "s/var.db_endpoint/" wp-config.php
+sed -i "s/localhost/${endpoint}/" wp-config.php
 
 # 7️⃣ Restart Apache
 systemctl restart httpd
