@@ -1,9 +1,10 @@
 #!/bin/bash
 set -ex  # Enable debugging and stop on errors
 
-# 1️⃣ Update System and Install Required Packages
+# 1️⃣ Update System and Install Required Repositories
 sudo yum update -y
-sudo yum install -y httpd php php-mysqli mariadb105
+sudo amazon-linux-extras enable php7.4  # Enable PHP 7.4
+sudo yum install -y httpd php php-cli php-mysqlnd php-mbstring php-xml mariadb105
 
 # 2️⃣ Start and Enable Apache Web Server
 sudo systemctl start httpd
@@ -32,5 +33,6 @@ sed -i "s/password_here/mydbpassword/" wp-config.php
 sed -i "s/localhost/${endpoint}/" wp-config.php
 
 # 7️⃣ Restart Apache
-systemctl restart httpd
+sudo systemctl restart httpd
+
 
