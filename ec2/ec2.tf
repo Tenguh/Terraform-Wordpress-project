@@ -4,7 +4,6 @@ resource "aws_security_group" "ec2_sg" {
   description = "Allow  traffic for ssh"
   vpc_id = var.vpc_id
 
-
 #ssh traffic
   ingress {
     from_port   = 22
@@ -32,7 +31,6 @@ ingress {
  
 } 
   
-
   egress {
     from_port   = 0
     to_port     = 0

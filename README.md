@@ -54,21 +54,20 @@
   - Go to your terminal and do a **git clone https://github.com/Tenguh/Terraform-Wordpress-project.git** *replace with your own repo link*
   - this will clone an empty repository.
 
-  **Step 2: Creating VPC and Subnets.**
+  **Step 2: Creating VPC, Subnets, IGW, NAT, EIP and Routes using a subnet module .**
   - Choose a provider **AWS**
   - Create a file and call it **provider.tf**. The name of the file can be anything but the extension most be **.tf**
   - Copy and past below code into **provider.tf** ![provider.tf](image-5.png)
-  - For creating the VPC and subnets, create folder and call it **subnet**. under the subnet folder create three different files and name them **subnet.tf, outputs.tf and variables.tf**
-  - Open subnet.tf and paste the below code which creates the VPC, the public subnet, and the private subnets.![vpc & public subnet](image-8.png),![pvt subnets](image-7.png) 
+  - For creating the VPC and subnets, create folder and call it **subnet**. under the subnet folder create three different files and name them **subnets.tf, outputs.tf and variables.tf**
+  - Open subnets.tf and paste the below code which creates the VPC, the public subnet, private subnets, internet gateway, and routes.![vpc & public subnet](image-9.png),![pvt subnets](image-6.png), ![gateway](image-10.png)![pub rtb](image-11.png), ![prvt route](image-12.png),![ass route](image-13.png)
+  - Open outputs.tf and paste this code.![outputs.tf](image-7.png) 
+  - Open variables.tf and paste this code.![variables.tf](image-8.png)
+  
 
-  - Set up AWS VPC with cidr ![wp-vpc](image-2.png)
-  - Set up subnets(1 public and 2 private) with correct cidr ranges.![wp-subnets](image-3.png)
-  - Set up Route tables(public and private routes) and associate them to their respective subnets.![route-tables](image-4.png)
-  - Set up EC2 instance in the public subnet![WP-instance](image.png)
-  - Set up Internet gateway![wp-igw](image-5.png) and Nat Gateway on the instance![wp-nat](image-6.png)
-
-  **Step 2:**
-  - Configure security groups which is paramount when hosting a website. AWS Security group provide essential firewall protection ensuring your WordPress site stays secured.
+  **Step 3: Creating Security group and EC2 Instance**
+  - Create folder and call it **EC2**. under this folder create three different files and name them **ec2.tf, outputs.tf and variables.tf**
+  - Open ec2.tf and paste the below code which creates security groups and the instance.
+   hich is paramount when hosting a website. AWS Security group provide essential firewall protection ensuring your WordPress site stays secured.
 
   **Step 3:**
   - Set up RDS Database in a private subnet.![myrdsinstance](image-7.png)![db-subnet-group](image-8.png)
