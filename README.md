@@ -1,6 +1,6 @@
 # Deploying WordPress on AWS with RDS using Terraform Modules
 
-![Architecture](<ReadmeImages/WordPress with File share and RDS MySQL Database.jpg>)
+![Architecture](<ReadmeImages/>)
 ## Overview
  In this project, I will automate the deployment of WordPress application on AWS. The project will guide you through setting up a WordPress server on EC2 instance. I equally leverage on terraform modules to create the various AWS services. WordPress is installed on the ec2 instance with the help of userdata script that Install PHP and WordPress. Also EFS utilities are installed and configured on the ec2 instance using a userdata script. The following AWS services were used alongside terraform as our Infrastructure as code tool 
   * EC2 to host the WordPress application and Database.
@@ -38,26 +38,42 @@
   * Choose a provider **AWS**
   * Create a file and call it **provider.tf**. The name of the file can be anything but the extension most be **.tf**
   * Copy and past below code into **provider.tf** 
+
   ![provider.tf](./ReadmeImages/5.png)
-  * For creating the VPC and subnets, create folder and call it **subnet**. under the subnet folder create three different files and name them **subnets.tf, outputs.tf and variables.tf** 
+
+  * For creating the VPC and subnets, create folder and call it **subnet**. under the subnet folder create three different files and name them **subnets.tf**, **outputs.tf** and **variables.tf** 
+
   ![module](./ReadmeImages/18.png)
+
   * Open subnets.tf and paste the below code which creates the VPC, the public subnet, private subnets, internet gateway, and routes.
+
   ![vpc & public subnet](./ReadmeImages/9.png),![pvt subnets](./ReadmeImages/6.png),![gateway](./ReadmeImages/10.png)![pub rtb](./ReadmeImages/11.png),![prvt route](./ReadmeImages/12.png),![ass route](./ReadmeImages/13.png)
+
   * Open outputs.tf and paste this code.
+
   ![outputs.tf](./ReadmeImages/7.png) 
+
   * Open variables.tf and paste this code.
+
   ![variables.tf](./ReadmeImages/8.png)
   
 
   4) ***Creating a keypair, Security group and EC2 Instance using an ec2 module***
   * sign into your AWS account and create a *.pem* key **harriet-key**
   * Create folder and call it **EC2**. under this folder create three different files and name them **ec2.tf**, **outputs.tf** and **variables.tf** 
+
   ![module](./ReadmeImages/17.png)
+
   * Open ec2.tf and paste the below code which creates security groups and the instance.
+
   ![sg1](image.png),![sg2](./ReadmeImages/1.png),![AMI](./ReadmeImages/2.png),![instance](image-14.png)
+
   * Open ec2/outputs.tf and paste this code. 
+
   ![ec2/output](./ReadmeImages/15.png)
+
   * Open ec2/variables.tf and paste this code.
+  
   ![ec2/var](./ReadmeImages/16.png)
    
 
@@ -135,7 +151,7 @@ sudo systemctl restart httpd
     mount -t efs ${aws_efs_file_system.efs.id}:/ /mnt/efs
 
 
-  8) ***Creating the main.tf, terraform.tfvars and the variable files***
+8) ***Creating the main.tf, terraform.tfvars and the variable files***
   * Create a file and call it variables.tf
   * Paste these variables in it 
   ![variables](./ReadmeImages/31.png)
@@ -171,7 +187,7 @@ Install the required plugins that will be used in creating your infrastructure o
         `git commit -m "relevant commit message"`
         `git push`
 
-- go to the console, open ec2 - instances
+- Go to the console, open ec2 - instances
   * copy the public ip of the WordPress Instance
     ![pub ip](./ReadmeImages/image0.png)
 
@@ -209,9 +225,9 @@ Install the required plugins that will be used in creating your infrastructure o
 
 
 # Conclusion & Key Takeaways
-Terraform simplifies WordPress deployment on AWS
-AWS services ensure scalability, security, and automation
-The architecture balances public access with private security
+* Terraform simplifies and automates WordPress deployment on AWS
+* AWS services ensure scalability, security, and automation
+* The architecture balances public access with private security
 
 
 
