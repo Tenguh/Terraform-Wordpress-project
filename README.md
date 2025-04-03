@@ -1,8 +1,17 @@
-# "Deploying WordPress on AWS with Terraform"
+# "Deploying WordPress on AWS with RDS using Terraform Modules"
 
-  - In this project, i will deploy a wordpress application on AWS EC2, with relational database (RDS) , ensuring rebust security with security groups while using Terraform to automate on AWS.
+  **Overview**
+  In this project, i will walk you through deploying a wordpress application on AWS EC2, with relational database (RDS) , ensuring rebust security with security groups while using Terraform modules to automate on AWS.
 
-*Repository Link:*  **https://github.com/Tenguh/Terraform-Wordpress-project.git**
+  ***Prerequisite***
+  - Have an AWS account
+  - Install Visual Studio Code and Terraform
+  - Configure terraform to use your AWS account(AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY)
+  - Install AWS CLI
+
+*Repository Link:* **https://github.com/Tenguh/Terraform-Wordpress-project.git**
+
+
 # Detailed Architecture Flow
 ![Architectural Diagram](<_WordPress with File share and RDS MySQL Database.jpg>)
 # Diagram Explanation:
@@ -14,6 +23,7 @@
 
 
 # Why Terraform
+- Free and open source IaC tool
 - Automates AWS resource provisioning.
 - Ensures infrastructure consistency.
 - Easy to scale and modify.
@@ -44,7 +54,7 @@
  - Internet Gateway: Allows public access to the EC2 instance
  - NAT Gateway: Allows private resources to fetch updates securely
 
-## Steps used in Deploying WordPress on AWS using Terraform
+## Steps used in Deploying WordPress on AWS using Terraform Modules
 
   **Step 1: Creating and Cloning your GitHub repository** 
   - login into your github account, create a new repository **https://github.com/Tenguh/Terraform-Wordpress-project.git**
@@ -58,30 +68,66 @@
   - Choose a provider **AWS**
   - Create a file and call it **provider.tf**. The name of the file can be anything but the extension most be **.tf**
   - Copy and past below code into **provider.tf** ![provider.tf](image-5.png)
-  - For creating the VPC and subnets, create folder and call it **subnet**. under the subnet folder create three different files and name them **subnets.tf, outputs.tf and variables.tf**
+  - For creating the VPC and subnets, create folder and call it **subnet**. under the subnet folder create three different files and name them **subnets.tf, outputs.tf and variables.tf** ![module](image-18.png)
   - Open subnets.tf and paste the below code which creates the VPC, the public subnet, private subnets, internet gateway, and routes.![vpc & public subnet](image-9.png),![pvt subnets](image-6.png), ![gateway](image-10.png)![pub rtb](image-11.png), ![prvt route](image-12.png),![ass route](image-13.png)
   - Open outputs.tf and paste this code.![outputs.tf](image-7.png) 
   - Open variables.tf and paste this code.![variables.tf](image-8.png)
   
 
-  **Step 3: Creating Security group and EC2 Instance**
-  - Create folder and call it **EC2**. under this folder create three different files and name them **ec2.tf, outputs.tf and variables.tf**
-  - Open ec2.tf and paste the below code which creates security groups and the instance.
-   hich is paramount when hosting a website. AWS Security group provide essential firewall protection ensuring your WordPress site stays secured.
+  **Step 3: Creating a keypair, Security group and EC2 Instance using an ec2 module**
+  - sign into your AWS account and create a *.pem* key **harriet-key**
+  - Create folder and call it **EC2**. under this folder create three different files and name them **ec2.tf, outputs.tf and variables.tf** ![module](image-17.png)
+  - Open ec2.tf and paste the below code which creates security groups and the instance.![sg1](image.png), ![sg2](image-1.png),![AMI](image-2.png), ![instance](image-14.png)
+  - Open ec2/outputs.tf and paste this code. ![ec2/output](image-15.png)
+  - Open ec2/variables.tf and paste this code.![ec2/var](image-16.png)
+   
 
-  **Step 3:**
-  - Set up RDS Database in a private subnet.![myrdsinstance](image-7.png)![db-subnet-group](image-8.png)
- # - Set up EFS to store configuration files![efs-sg](image-1.png), plugins and website content and mounttarget ![mounttarget](image-2.png)
-  - configure security groups on EC2(![ec2-sg](image-1.png)), RDS Instance and EFS to allow traffic only between them based on the ports.
+  ***Step 4:Setting up RDS Database in a private subnet using a database module***
+  - Create folder and call it **database**. under this folder create three different files and name them **database.tf, outputs.tf and variables.tf** ![module](image-19.png)
+  - Open database.tf and paste the below code which creates database security group, database instance and database subnet group. ![db-sg](image-20.png), ![db-instance](image-21.png), ![subnet-grp](image-22.png)
+  - Open database/outputs.tf and paste this code. ![db/output](image-23.png)
+  - Open database/variables.tf and paste this code. ![db/var](image-24.png)
 
-  **Step 4:**
-  - Install and configure WordPress on the EC2 instance using userdata script that contains the wordpress config.php to establish a connection to the RDS MySQL Instance and also connect the EC2 Instance and the RDS Instance.
-  - Use script to install EFS utilities and automatically mounts the EFS storage on the instance.
 
-  **Step 5(optional):**
-  - Set up IAM Role to grant the instance permission to access the RDS Instance
-  - Set up S3 to store static assets reducing load on the EC2 instance 
-  - Use S3 and DynamoDB in storing and locking the statefile respectively.
+  ***Step 5: Setting up the Elastic File System (EFS), mount target and security group for EFS***
+  - Create folder and call it **efs**. under this folder create three different files and name them **efs.tf, outputs.tf and variables.tf**![Module](image-25.png)
+  - Open efs.tf and paste the below code which creates efs security group, elastic file system and the mount target.![efs&mounttarget](image-26.png), ![efs-sg](image-27.png)
+  - Open efs/variables.tf and paste this code ![efs/var](image-28.png)
+  
+
+  ***Step 6:Installation and configuration of WordPress and EFS utilities on the EC2 instance.***
+  - Create a folder and call it **scripts**. under this folder create two different files and name them **userdata.sh and mounttarget.sh** ![scripts](image-32.png)
+  - Open userdata.sh and paste the script that installs WordPress on the instance.
+  - This script contains the wordpress config.php to establish a connection to the RDS MySQL instance and also connect the EC2 Instance and the RDS Instance. 
+  - Open mounttarget.sh and paste the script that installs EFS utilities and automatically mounts the EFS storage on the instance. ![script/mounttarget](image-33.png)
+
+
+  ***Step 7:Creating the main.tf, terraform.tfvars and the variable files***
+  - Create a file and call it variables.tf
+  - Paste these variables in it ![variables](image-31.png)
+  - Create another file and call it terraform.tfvars
+  - *Open and create the values for each variable in the variables.tf file we just created.*
+  - Create a file and call it **main.tf**.
+  - Open this file and paste the following Modules; ![ec2&subnets](image-29.png), ![databas&efs](image-30.png)
+
+Move to the terraform directory where all the files are located ![location](image-34.png) and 
+Install the required plugins that will be used in creating your infrastructure on AWS by running the command *terraform init* 
+
+![initializing](image-35.png)
+
+Now run *terraform plan* which shows the changes that will be made to your infrastructure.
+![plan](image-36.png)
+
+with a successfully terraform, we are sure our infrastucture is ok so we can now run *terraform apply -auto-approve* to create the infrastructure in AWS.![creation](image-37.png)![creation](image-38.png)![alt text](image-39.png)
+
+Open your AWS account and see all the resources created.
+![instance](image-44.png)
+![rds](image-45.png)
+!![subnetgrp](image-43.png)
+![efs](image-46.png)
+
+
+
 
 
 ## Challenges & Solutions
@@ -92,22 +138,14 @@
 
 # Solution: 
  - used S3 + DynamoDB for state management
- - Proper IAM roles, security groups, and encryption
+ - Set proper security groups and encryption
  - Used EfS to ensure scalibility 
 
 # Conclusion & Key Takeaways
 Terraform simplifies WordPress deployment on AWS
-
 AWS services ensure scalability, security, and automation
-
 The architecture balances public access with private security
 
-
-call this function: templatefile(userdata.sh, {endpoint: var.db_endpoint })
-instead of: file(userdata.sh)
-
-update: userdata.sh
-sed .. /localhost/${endpoint}/ 
 
 
 
