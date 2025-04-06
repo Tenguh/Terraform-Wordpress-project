@@ -1,6 +1,6 @@
 # Deploying WordPress on AWS with RDS using Terraform Modules
 
-![Architecture](<ReadmeImages/>)
+![Architecture](<ReadmeImages/_Architecture Diagram.png>)
 ## Overview
  In this project, I will automate the deployment of WordPress application on AWS. The project will guide you through setting up a WordPress server on EC2 instance. I equally leverage on terraform modules to create the various AWS services. WordPress is installed on the ec2 instance with the help of userdata script that Install PHP and WordPress. Also EFS utilities are installed and configured on the ec2 instance using a userdata script. The following AWS services were used alongside terraform as our Infrastructure as code tool 
   * EC2 to host the WordPress application and Database.
@@ -13,10 +13,10 @@
   
 
   ## Prerequisites
-  * AWS Account:  Admin access to AWS account
-  * AWS CLI: installed and configured with the right credentials
-  * Git: install git using this link
-  * Terraform: Install terraform using this link
+  * AWS Account: Admin access to AWS account
+  * AWS CLI: Installed and configured with the right credentials
+  * Git: [Install git using this link](https://git-scm.com/downloads/win)
+  * Terraform: [Install terraform using this link](https://developer.hashicorp.com/terraform/install)
   * Install Visual Studio Code with the neccesary extensions.
  
 
@@ -26,7 +26,7 @@
 ###### Steps used in Deploying WordPress on AWS using Terraform Modules
 
   2) ***Creating and Cloning your GitHub repository*** 
-  * login into your github account, create a new repository **https://github.com/Tenguh/Terraform-Wordpress-project.git**
+  * login into your github account, create a new repository **Terraform-Wordpress-project**
   * Open VSC and Create a folder and call it what ever name you wish. say **Terraform_WP_Project**
   * open a new terminal and select **git bash**
   * go to your repo and click on the drop down arrow by code and copy the http link
@@ -229,7 +229,7 @@ Install the required plugins that will be used in creating your infrastructure o
 * AWS services ensure scalability, security, and automation
 * The architecture balances public access with private security
 
-
+![alt text](image.png)
 
 
 
