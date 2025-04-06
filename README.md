@@ -1,4 +1,7 @@
-# Deploying WordPress on AWS with RDS using Terraform Modules
+***Automating WordPress Deployment on AWS using Terraform Modules***
+
+
+
 
   ![Architecture](<ReadmeImages/_Architecture Diagram.png>)
 ## Overview
