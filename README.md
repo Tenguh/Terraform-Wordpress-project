@@ -1,4 +1,4 @@
-***Automating WordPress Deployment on AWS using Terraform Modules***
+  ***Automated deployment of **high-availability WordPress** using EC2, EFS, and Terraform***. 
 
 
 
