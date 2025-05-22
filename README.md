@@ -14,14 +14,12 @@
   Automate the deployment using **Terraform (IaC)** and AWS services, ensuring:  
     1. **Infrastructure as Code (Terraform):**  
     - Automated creation of **EC2, EFS, Security Groups, and VPC** components which can be repeatedly deployed across environments. 
- 
-    2. **High Availability & Scalability:**  
-    - **EFS (Elastic File System):** Decoupled storage from EC2, allowing multiple instances to share WordPress files.  
-    - **User Data Scripts:** Automated installation of WordPress, PHP, and EFS utilities on EC2 launch.  
- 
-    3. **Cost Optimization:**   
+
+    2. High Availability & Scalability:  
+    - EFS (Elastic File System): Decoupled storage from EC2, allowing multiple instances to share WordPress files.  
+    - User Data Scripts: Automated installation of WordPress, PHP, and EFS utilities on EC2 launch. 
+    3. Cost Optimization:   
     - Auto-scaling rules to handle traffic spikes.  
- 
    ### **AWS Services Used:**    
    
    - **EC2**: Host WordPress with automated setup via user data.  
@@ -32,7 +30,7 @@
  
    ### **Deployment Process**
 
-    This project will guide you through setting up a WordPress server on EC2 instance using terraform modules to create the various AWS services. WordPress is installed on the ec2 instance with the help of userdata script that Install PHP and WordPress. Also EFS utilities are installed and configured on the ec2 instance using a userdata script.  
+   This project will guide you through setting up a WordPress server on EC2 instance using terraform modules to create the various AWS services. WordPress is installed on the ec2 instance with the help of userdata script that Install PHP and WordPress. Also EFS utilities are installed and configured on the ec2 instance using a userdata script.  
   
 
   ## Prerequisites
