@@ -21,4 +21,9 @@ output "private_subnet_ids" {
 
 }
 
+output "public_subnet_ids" {
+  value = [aws_subnet.public1.id, aws_subnet.public2.id]
+}
+
+
 

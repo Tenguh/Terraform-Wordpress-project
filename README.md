@@ -1,19 +1,31 @@
-###### Automating WordPress Deployment on AWS using Terraform Modules***
+###### Automated deployment of high-availability WordPress using EC2, EFS, and Terraform.
+ ![Architecture](<ReadmeImages/_Architecture Diagram.png>)
 
+***Project Overview:***
+This project automates the deployment of a highly available, scalable, and low-maintenance WordPress application on AWS. Designed to address the challenges faced by a small marketing agency, the solution eliminates manual setup risks like downtime, data loss, and inefficient scaling.
 
+*Key Components:*
 
+a.) Infrastructure as Code (Terraform):
 
-  ![Architecture](<ReadmeImages/_Architecture Diagram.png>)
-## Overview
- In this project, I will automate the deployment of WordPress application on AWS. The project will guide you through setting up a WordPress server on EC2 instance. I equally leverage on terraform modules to create the various AWS services. WordPress is installed on the ec2 instance with the help of userdata script that Install PHP and WordPress. Also EFS utilities are installed and configured on the ec2 instance using a userdata script. The following AWS services were used alongside terraform as our Infrastructure as code tool 
-  * EC2 to host the WordPress application and Database.
-  * VPC, Subnets,& Security Groups: to create an isolated network for security and controlled access.
-  * RDS for storing and managing the Wordpress Database.
-  * EFS Automatically scales based on demand, cost effective, helps persist data and management is simplified.
-  * Internet Gateway allows public access to the EC2 instance.
-  * NAT Gateway allows private resources to fetch updates securely.
-  
-  
+- Automated provisioning of EC2, EFS, VPC, and Security Groups using reusable Terraform modules.
+- Consistent deployments across environments (dev/stage/prod).
+
+b.) Self-Configuring WordPress Server:
+
+- User Data Scripts automate the installation of PHP, WordPress, and EFS utilities on EC2 launch.
+- EFS (Elastic File System) ensures persistent storage, allowing multiple instances to share WordPress files.
+
+c.) Scalability & Cost Optimization:
+
+- Decoupled architecture (compute vs. storage) for easy horizontal scaling.
+- Optional spot instances for non-production workloads.
+
+***Why This Matters:***
+
+- Faster Deployments: cut infrastructure setup from 4hours to 10mins (96% faster).
+- High Availability: EFS prevents data loss during EC2 failures.
+- No Vendor Lock-In: Terraform makes it easy to migrate or modify infrastructure.
 
   ## Prerequisites
   * AWS Account: Admin access to AWS account
@@ -280,8 +292,9 @@ and get a prompt to either say *yes*  for the infrastructure to be created or *n
     ![alt text](./ReadmeImages/-8.png)
 
         
- * Finally, play around with it and do some modifications as you like .
-        
+ Finally,play around with it and do some modifications as you like .
+  * you can add another user by clicking on user
+  select all users.      
 
   ###### Destroy the infrastructure
 * Go to your terminal and run 

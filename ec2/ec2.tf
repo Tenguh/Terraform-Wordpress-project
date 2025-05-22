@@ -43,7 +43,7 @@ ingress {
   }
 }
 
-data "aws_ami" "latest-amazon-linux-image" {
+data "aws_ami" "latest_amazon_linux_image" {
   most_recent = true
   owners      = ["amazon"]
   filter {
@@ -59,7 +59,7 @@ data "aws_ami" "latest-amazon-linux-image" {
 
 #creating the instance
 resource "aws_instance" "wordpress" {
-  ami                    = data.aws_ami.latest-amazon-linux-image.id
+  ami                    = data.aws_ami.latest_amazon_linux_image.id
   instance_type          = "t3.small"
   key_name               = "harriet-key"
   user_data = templatefile("scripts/userdata.sh", { 

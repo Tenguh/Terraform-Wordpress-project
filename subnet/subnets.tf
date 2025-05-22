@@ -6,7 +6,7 @@ resource "aws_vpc" "wordpress_vpc" {
   }
 }
 
-#public subnet
+#public subnets
 resource "aws_subnet" "public1" {    
   vpc_id     = aws_vpc.wordpress_vpc.id
   cidr_block = var.public1_cidr_block
@@ -15,6 +15,17 @@ resource "aws_subnet" "public1" {
 
   tags = {
     Name = "wp-pub1"
+  }
+}
+
+resource "aws_subnet" "public2" {    
+  vpc_id     = aws_vpc.wordpress_vpc.id
+  cidr_block = var.public1_cidr_block
+  availability_zone = var.public1_availability_zone
+  map_public_ip_on_launch = false 
+
+  tags = {
+    Name = "wp-pub2"
   }
 }
 
