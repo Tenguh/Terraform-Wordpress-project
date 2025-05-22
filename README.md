@@ -62,8 +62,26 @@
   * Create a file and call it **provider.tf**. The name of the file can be anything but the extension most be **.tf**
   * For the **provider.tf** file :
 
+```
+  terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.91.0"
+
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+  # Configuration options
+}
+
+```
+
   
-    ![image](./ReadmeImages/image-2.png)
+  
 
   * For creating the VPC and subnets, create folder and call it **subnet**. under the subnet folder create three different files and name them **subnets.tf**, **outputs.tf** and **variables.tf**
 
@@ -73,21 +91,190 @@
 
   * Open subnets.tf and include the below code which creates the VPC, the public subnet, private subnets, internet gateway, and routes.
 
+  ```
+  resource "aws_vpc" "wordpress_vpc" {
+  cidr_block       = var.vpc_cidr_block
 
-    ![image](./ReadmeImages/9.png),
-    ![image](./ReadmeImages/6.png),
-    ![image](./ReadmeImages/10.png),
-    ![image](./ReadmeImages/11.png),
-    ![image](./ReadmeImages/12.png),
-    ![image](./ReadmeImages/13.png)
+  tags = {
+    Name = "wp-vpc"
+  }
+}
+
+#public subnets
+resource "aws_subnet" "public1" {    
+  vpc_id     = aws_vpc.wordpress_vpc.id
+  cidr_block = var.public1_cidr_block
+  availability_zone = var.public1_availability_zone
+  map_public_ip_on_launch = false 
+
+  tags = {
+    Name = "wp-pub1"
+  }
+}
+
+resource "aws_subnet" "public2" {    
+  vpc_id     = aws_vpc.wordpress_vpc.id
+  cidr_block = var.public2_cidr_block
+  availability_zone = var.public1_availability_zone
+  map_public_ip_on_launch = false 
+
+  tags = {
+    Name = "wp-pub2"
+  }
+}
+
+#creating Private Subnets
+resource "aws_subnet" "private1" { 
+  vpc_id     = aws_vpc.wordpress_vpc.id
+  cidr_block = var.private1_cidr_block
+  availability_zone = var.private1_availability_zone
+
+  tags = {
+    Name = "wp-pvt1"
+  }
+}
+
+resource "aws_subnet" "private2" {
+  vpc_id     = aws_vpc.wordpress_vpc.id
+  cidr_block = var.private2_cidr_block
+  availability_zone = var.private2_availability_zone
+
+  tags = {
+    Name = "wp-pvt2"
+  }
+}
+
+#internet gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.wordpress_vpc.id
+
+  tags = {
+    Name = "wp-igw"
+  }
+}
+#elastic ip
+resource "aws_eip" "eip" {
+  domain = "vpc"
+}
+
+#creating Nat
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.eip.id
+  subnet_id     = aws_subnet.public1.id
+
+  tags = {
+    Name = "wp-nat"
+  }
+}
+
+#public rtb
+resource "aws_route_table" "pub-rtb" {
+  vpc_id = aws_vpc.wordpress_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  route {
+     cidr_block = "0.0.0.0/0"
+     gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "pub-rtb"
+  }
+}
+
+
+#private rtb
+resource "aws_route_table" "pvt_rtb" {
+  vpc_id = aws_vpc.wordpress_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  route {
+     cidr_block = "0.0.0.0/0"
+     gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "pvt-rtb"
+  }
+}
+
+#route table association
+resource "aws_route_table_association" "pub1" {
+  subnet_id      = aws_subnet.public1.id
+  route_table_id = aws_route_table.pub-rtb.id
+}
+
+resource "aws_route_table_association" "pvt1" {
+  subnet_id      = aws_subnet.private1.id
+  route_table_id = aws_route_table.pvt_rtb.id
+}
+
+resource "aws_route_table_association" "pvt2" {
+  subnet_id      = aws_subnet.private2.id
+  route_table_id = aws_route_table.pvt_rtb.id
+}
+```
+
 
   * Open outputs.tf and create outputs(subnet/outputs.tf)
+  
+  ```
+  output "private1_subnet_id" {
+    value = aws_subnet.private1.id
+    description = "outing the private subnet id" 
+}
+output "private2_subnet_id" {
+    value = aws_subnet.private2.id
+    description = "outputing the private subnet id"
+}
 
-    ![image](./ReadmeImages/7.png) 
+output "public1_subnet_id" {
+    value = aws_subnet.public1.id
+    description = "outing the public subnet id"
+}
+
+output "vpc_id" {
+  value = aws_vpc.wordpress_vpc.id
+}
+
+output "private_subnet_ids" {
+  value = [aws_subnet.private1.id, aws_subnet.private2.id] 
+
+}
+
+output "public_subnet_ids" {
+  value = [aws_subnet.public1.id, aws_subnet.public2.id]
+}
+```
+ 
 
   * Open variables.tf and create variabes.(subnet/variables.tf)
+  
+  ```
+ variable "public1_cidr_block"{}
+ variable "public2_cidr_block" {}
+ variable "private1_cidr_block"{}
+ variable "private2_cidr_block"{}
+ variable "private1_availability_zone" {}
+ variable "private2_availability_zone" {}
+ variable "public1_availability_zone" {}
+ 
+ variable "vpc_cidr_block" {
+    type = string
+    description = "vpc cidr block to use"
+  
+}
+```
 
-    ![image](./ReadmeImages/8.png)
+  
   
 
   4) ***Creating a keypair, Security group and EC2 Instance using an ec2 module***
@@ -100,19 +287,127 @@
 
   * Open ec2.tf and create the code for security group and the instance.
 
-   
-     ![image](./ReadmeImages/1.png),
-     ![image](./ReadmeImages/2.png),
-     ![alt text](./ReadmeImages/image-5.png)
-     
+  ```
+  # creating security group
+resource "aws_security_group" "ec2_sg" {
+    name = "ec2_sg"
+  description = "Allow  traffic for ssh"
+  vpc_id = var.vpc_id
 
-  * For ec2/outputs.tf create outputs to be used. 
+#ssh traffic
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+    description = "allowing traffic from everywhere"
+  }
 
-    ![image](./ReadmeImages/15.png)
+#http traffic
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "allow http traffic"
+  }
+
+  #https traffic
+ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+ 
+} 
+  
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ec2-sg"
+  }
+}
+
+data "aws_ami" "latest_amazon_linux_image" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+
+  }
+}
+
+#creating the instance
+resource "aws_instance" "wordpress" {
+  ami                    = data.aws_ami.latest_amazon_linux_image.id
+  instance_type          = "t3.small"
+  key_name               = "harriet-key"
+  user_data = templatefile("scripts/userdata.sh", { 
+  endpoint      = var.db_endpoint,
+  mount_script = file("scripts/mounttarget.sh")
+})
+
+  subnet_id = var.subnet_id
+  security_groups = [aws_security_group.ec2_sg.id]
+  associate_public_ip_address = true
+  tags = {
+    Name = "WP-instance"
+  }
+}
+```
+
+  
+  * For ec2/outputs.tf create outputs to be used.
+
+  ```
+  output "instance_id" {
+  value = aws_instance.wordpress.id
+}
+
+output "instance_public_ip" {
+  value = aws_instance.wordpress.public_ip
+}
+
+output "ec2_sg_id" {
+  description = "ID of the EC2 security group"
+  value       = aws_security_group.ec2_sg.id
+}
+
+output "latest_amazon_linux_image_id" {
+  value = data.aws_ami.latest_amazon_linux_image.id
+}
+``` 
+
+
+
 
   * Do same for ec2/variables.tf. Create the needed variables.
-  
-     ![image](./ReadmeImages/16.png)
+
+  ```
+  variable "key_pair_name" {
+  type        = string
+  description = "keypair to utilize"
+}
+
+variable "db_endpoint" {
+  type        = string
+  description = "Database endpoint for WordPress"
+}
+
+variable "vpc_id" {}
+variable "subnet_id" {}
+ ``` 
+     
    
 
   5) ***Setting up RDS Database in a private subnet using a database module***
@@ -123,18 +418,92 @@
 
   * Open database.tf and create the configuration code for database security group, database instance and database subnet group. 
 
-      ![image](./ReadmeImages/20.png),
-      ![image](./ReadmeImages/21.png),
-      ![image](./ReadmeImages/22.png)
+  ```
+  resource "aws_security_group" "rds_sg" {
+  name = "rds_sg"
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+#create a RDS Database Instance
+resource "aws_db_instance" "myrds" {
+  engine               = "mysql"
+  identifier           = "myrdsinstance"
+  allocated_storage    =  20
+  engine_version       = "8.0"
+  instance_class       = var.instance_class
+  db_name = var.db_name
+  username             = "harriet"
+  password             = var.password
+  parameter_group_name = "default.mysql8.0"
+  vpc_security_group_ids = ["${aws_security_group.rds_sg.id}"]
+  skip_final_snapshot  = true
+  publicly_accessible =  true
+
+  tags = {
+    Name = "wordpressdb"
+  }
+}
+
+resource "aws_db_subnet_group" "subnet_group" {
+  name       = "db_subnet_group"
+  subnet_ids = [var.private1_subnet_id, var.private2_subnet_id]
+
+  tags = {
+    Name = "My DB subnet group"
+  }
+}
+```
+
+
 
   * Open database/outputs.tf and create outputs needed. 
-      ![image](./ReadmeImages/23.png)
+
+  ```
+ output "security_group_id" {
+  value       = aws_security_group.rds_sg.id
+}
+output "db_instance_endpoint" {
+  value       = aws_db_instance.myrds.endpoint
+}
+
+output "public1_subnet_id" {
+  value = var.public1_subnet_id
+}
+
+output "private1_subnet_id" {
+  value = var.private1_subnet_id
+}
+
+output "db_endpoint" {
+  value = aws_db_instance.myrds.endpoint
+  description = "RDS endpoint"
+} 
+ ```     
 
   * Open database/variables.tf and do same
 
-      ![image](./ReadmeImages/24.png)
 
+```
+variable "password" {}
+variable "instance_class"{}
+variable "public1_subnet_id" {}
+variable "private1_subnet_id" {}
+variable "private2_subnet_id" {}
+variable "db_name" {}
+ ```
 
+      
   6) ***Setting up the Elastic File System (EFS), mount target and security group for EFS***
   - Create folder and call it **efs**. under this folder create three different files and name them **efs.tf, outputs.tf and variables.tf**
 
@@ -142,36 +511,82 @@
 
   - Open efs.tf and write code which creates efs security group, elastic file system and the mount target.
 
-        ![image](./ReadmeImages/26.png),
-        ![image](./ReadmeImages/27.png)
+  ```
+  resource "aws_efs_file_system" "efs" {
+  creation_token   = "wp-efs"
+  performance_mode = "generalPurpose"
+  throughput_mode  = "bursting"
+
+  tags = {
+    Name = "wp-EFS"
+  }
+}
+
+#creating efs mount target
+resource "aws_efs_mount_target" "efs_mt" {
+  count           = length(var.subnet_ids)
+  file_system_id  = aws_efs_file_system.efs.id
+  subnet_id       = var.subnet_ids[count.index]
+  security_groups = [aws_security_group.efs_sg.id]
+}
+
+#security group for efs
+resource "aws_security_group" "efs_sg" {
+  name        = "efs-sg"
+  description = "Allow NFS traffic for EFS"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = ["10.80.0.0/16"]  # Adjust this to your VPC CIDR
+  }
+
+  tags = {
+    Name = "EFS-SG"
+  }
+}
+
+```
 
   - Open efs/variables.tf and create variables to be used.
 
-      ![image](./ReadmeImages/28.png)
+ 
+  ```
+  variable "subnet_ids" {
+  type = list(string)
+  }
+  variable "vpc_id" {
+  type = string
+  }
   
+  ```
+
+
   7) ***setting up auto scaling group and policies, launch template and cloudwatch metric alarms.***
   - Create folder and call it **asg**. under this folder create three different files and name them **asg.tf, outputs.tf and variables.tf**
   
   - open asg.tf and include the following code which creates the above.
-  ```
-  resource "aws_launch_template" "wordpress_lt" {
-  name_prefix   = "wordpress-lt"
-  image_id      = var.ami_id
-  instance_type = "t3.medium"
-  key_name      = var.key_pair_name
+   ```
+   resource "aws_launch_template" "wordpress_lt" {
+   name_prefix   = "wordpress-lt"
+   image_id      = var.ami_id
+   instance_type = "t3.medium"
+   key_name      = var.key_pair_name
   
- user_data = base64encode(templatefile("scripts/userdata.sh", { 
-  endpoint      = var.db_endpoint,
-  mount_script  = file("scripts/mounttarget.sh")
-}))
+   user_data = base64encode(templatefile("scripts/userdata.sh", { 
+   endpoint      = var.db_endpoint,
+   mount_script  = file("scripts/mounttarget.sh")
+  }))
 
-  network_interfaces {
+   network_interfaces {
     associate_public_ip_address = true
     security_groups = [var.ec2_sg_id]
 
   }
-}
-resource "aws_autoscaling_group" "wordpress_asg" {
+ }
+ resource "aws_autoscaling_group" "wordpress_asg" {
   name                 = "wordpress-asg"
   min_size             = 2
   max_size             = 6
@@ -190,14 +605,14 @@ resource "aws_autoscaling_group" "wordpress_asg" {
     value               = "wordpress-asg-instance"
     propagate_at_launch = true
   }
-}
-resource "aws_autoscaling_policy" "scale_up" {
+ }
+ resource "aws_autoscaling_policy" "scale_up" {
   name                   = "wordpress_scale_up"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
   autoscaling_group_name = aws_autoscaling_group.wordpress_asg.name
-}
+ }
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   alarm_name          = "wordpress-high-cpu"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -214,15 +629,15 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
 
   alarm_description = "Scale up if CPU > 70% for 2 periods"
   alarm_actions     = [aws_autoscaling_policy.scale_up.arn]
-}
-resource "aws_autoscaling_policy" "scale_down" {
+ }
+ resource "aws_autoscaling_policy" "scale_down" {
   name                   = "wordpress_scale_down"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
   autoscaling_group_name = aws_autoscaling_group.wordpress_asg.name
-}
-resource "aws_cloudwatch_metric_alarm" "low_cpu" {
+ } 
+ resource "aws_cloudwatch_metric_alarm" "low_cpu" {
   alarm_name          = "wordpress-low-cpu"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
@@ -238,74 +653,74 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu" {
 
   alarm_description = "Scale down if CPU < 30% for 2 periods"
   alarm_actions     = [aws_autoscaling_policy.scale_down.arn]
-}
-```
+ }
+ ```
 
 - open variables.tf and input the variables. do same for outputs.tf
 
 ```
-variable "ami_id" {
+ variable "ami_id" {
   description = "AMI ID for instances"
   type        = string
-}
+ }
 
-variable "key_name" {
+ variable "key_name" {
   description = "EC2 key pair name"
   type        = string
-}
+ }
 
-variable "security_group_ids" {
+ variable "security_group_ids" {
   description = "List of security group IDs"
   type        = list(string)
-}
+ }
 
-variable "db_endpoint" {
+ variable "db_endpoint" {
   description = "RDS endpoint URL"
   type        = string
-}
+ }
 
-variable "db_name" {
+ variable "db_name" {
   description = "Database name"
   type        = string
-}
+ }
 
-variable "db_user" {
+ variable "db_user" {
   description = "Database username"
   type        = string
   sensitive   = true
-}
+ }
 
-variable "password" {
+ variable "password" {
   description = "Database password"
   type        = string
   sensitive   = true
-}
+ }
 
-variable "key_pair_name" {
+ variable "key_pair_name" {
   description = "ec2 key name"
   type        = string
-}
+ }
 
-variable "ec2_sg_id" {
+ variable "ec2_sg_id" {
   type = string
-}
+ }
 
-variable "subnet_ids" {
+ variable "subnet_ids" {
   type        = list(string)
   description = "List of public subnet IDs for the ASG"
-}
+ }
 
-variable "target_group_arns" {
+ variable "target_group_arns" {
   type        = list(string)
   description = "List of Target Group ARNs for the Auto Scaling Group"
-}
+ }
 
-variable "vpc_id" {}
-```
+ variable "vpc_id" {}
+ ```
 
 
 
-  8)***Installation and configuration of WordPress and EFS utilities on the EC2 instance.***
+  8) ***Installation and configuration of WordPress and EFS utilities on the EC2 instance.***
   * Create a folder and call it **scripts**. 
   * Under this folder create two different files and name them **userdata.sh** and **mounttarget.sh**
   * Open userdata.sh and paste the script that installs WordPress on the instance.
@@ -364,7 +779,7 @@ Now open mounttarget.sh and paste the script that installs EFS utilities and aut
 
 ```
 
-8) ***Creating the main.tf, terraform.tfvars and the variable files***
+9) ***Creating the main.tf, terraform.tfvars and the variable files***
   * Create a file and call it variables.tf
   * Create these variables in it 
 
@@ -480,7 +895,7 @@ and get a prompt to either say *yes*  for the infrastructure to be created or *n
   ![efs](./ReadmeImages/46.png)
 
 
-9) ***pushing your code to github and Login into your Database***
+10) ***pushing your code to github and Login into your Database***
  - Finally push changes to repo
         
         $ git add .
