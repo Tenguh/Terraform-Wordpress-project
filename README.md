@@ -12,12 +12,13 @@
  
   **My Solution:**  
   Automate the deployment using **Terraform (IaC)** and AWS services, ensuring:  
-    1. **Infrastructure as Code (Terraform):**  
+  1. **Infrastructure as Code (Terraform):**  
     - Automated creation of **EC2, EFS, Security Groups, and VPC** components which can be repeatedly deployed across environments. 
-    2. High Availability & Scalability:  
+    
+  2. High Availability & Scalability:  
     - EFS (Elastic File System): Decoupled storage from EC2, allowing multiple instances to share WordPress files.  
     - User Data Scripts: Automated installation of WordPress, PHP, and EFS utilities on EC2 launch. 
-    3. Cost Optimization:   
+  3. Cost Optimization:   
     - Auto-scaling rules to handle traffic spikes.  
    ### **AWS Services Used:**    
    
