@@ -1,4 +1,5 @@
  variable "public1_cidr_block"{}
+ variable "public2_cidr_block" {}
  variable "private1_cidr_block"{}
  variable "private2_cidr_block"{}
  variable "private1_availability_zone" {}

@@ -11,6 +11,11 @@ variable "public1_cidr_block" {
 
 }
 
+variable "public2_cidr_block" {
+  description = "CIDR block for public subnet 2"
+  type        = string
+
+}
 variable "private1_cidr_block" {
   description = "CIDR block for private subnet 1"
   type        = string
@@ -61,11 +66,11 @@ variable "key_pair_name" {
 
 }
 
-variable "db_endpoint" {
-  description = "RDS endpoint URL"
-  type        = string
-}
+#variable "db_endpoint" {
+#description = "RDS endpoint URL"
+#type        = string
+#}
 variable "db_user" {
   description = "database user name"
-  type = string
+  type        = string
 }

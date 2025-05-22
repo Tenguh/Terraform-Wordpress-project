@@ -5,10 +5,10 @@ resource "aws_launch_template" "wordpress_lt" {
   instance_type = "t3.medium"
   key_name      = var.key_pair_name
   
-  user_data = templatefile("scripts/userdata.sh", { 
+ user_data = base64encode(templatefile("scripts/userdata.sh", { 
   endpoint      = var.db_endpoint,
-  mount_script = file("scripts/mounttarget.sh")
-})
+  mount_script  = file("scripts/mounttarget.sh")
+}))
 
   network_interfaces {
     associate_public_ip_address = true
@@ -16,23 +16,6 @@ resource "aws_launch_template" "wordpress_lt" {
 
   }
 }
-
-resource "aws_lb_target_group" "wordpress" {
-  name     = "wordpress-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id  = var.vpc_id
-
-  health_check {
-    path                = "/"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    matcher             = "200-399"
-  }
-}
-
 
 # Create Auto Scaling Group
 resource "aws_autoscaling_group" "wordpress_asg" {
@@ -65,15 +48,6 @@ resource "aws_autoscaling_policy" "scale_up" {
   autoscaling_group_name = aws_autoscaling_group.wordpress_asg.name
 }
 
-# Scale-down policy
-resource "aws_autoscaling_policy" "scale_down" {
-  name                   = "wordpress_scale_down"
-  scaling_adjustment     = -1
-  adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.wordpress_asg.name
-}
-
 # CloudWatch alarm to trigger scale-up
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   alarm_name          = "wordpress-high-cpu"
@@ -91,6 +65,15 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
 
   alarm_description = "Scale up if CPU > 70% for 2 periods"
   alarm_actions     = [aws_autoscaling_policy.scale_up.arn]
+}
+
+# Scale-down policy
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "wordpress_scale_down"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.wordpress_asg.name
 }
 
 # CloudWatch alarm to trigger scale-down

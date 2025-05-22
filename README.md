@@ -4,15 +4,35 @@
 
 
   ![Architecture](<ReadmeImages/_Architecture Diagram.png>)
-## Overview
- In this project, I will automate the deployment of WordPress application on AWS. The project will guide you through setting up a WordPress server on EC2 instance. I equally leverage on terraform modules to create the various AWS services. WordPress is installed on the ec2 instance with the help of userdata script that Install PHP and WordPress. Also EFS utilities are installed and configured on the ec2 instance using a userdata script. The following AWS services were used alongside terraform as our Infrastructure as code tool 
-  * EC2 to host the WordPress application and Database.
-  * VPC, Subnets,& Security Groups: to create an isolated network for security and controlled access.
-  * RDS for storing and managing the Wordpress Database.
-  * EFS Automatically scales based on demand, cost effective, helps persist data and management is simplified.
-  * Internet Gateway allows public access to the EC2 instance.
-  * NAT Gateway allows private resources to fetch updates securely.
-  
+## Overview 
+ A small marketing agency needs a **highly available, scalable, and low-maintenance** WordPress hosting solution. Their manual setup on a single EC2 instance led to:  
+ - **Downtime** during traffic spikes.  
+ - **No disaster recovery** (data loss risk).  
+ - **Time-consuming manual scaling.**  
+ 
+  **My Solution:**  
+  Automate the deployment using **Terraform (IaC)** and AWS services, ensuring:  
+    1. **Infrastructure as Code (Terraform):**  
+    - Automated creation of **EC2, EFS, Security Groups, and VPC** components which can be repeatedly deployed across environments. 
+ 
+    2. **High Availability & Scalability:**  
+    - **EFS (Elastic File System):** Decoupled storage from EC2, allowing multiple instances to share WordPress files.  
+    - **User Data Scripts:** Automated installation of WordPress, PHP, and EFS utilities on EC2 launch.  
+ 
+    3. **Cost Optimization:**   
+    - Auto-scaling rules to handle traffic spikes.  
+ 
+   ### **AWS Services Used:**    
+   
+   - **EC2**: Host WordPress with automated setup via user data.  
+   - **EFS**: Shared storage for WordPress (uploads/themes). 
+   - **VPC**: Isolated network environment. 
+   - **Security Groups**: Restricted access to HTTP/SSH. 
+   - **Terraform**: Infrastructure as Code (IaC) for reproducibility. 
+ 
+   ### **Deployment Process**
+
+    This project will guide you through setting up a WordPress server on EC2 instance using terraform modules to create the various AWS services. WordPress is installed on the ec2 instance with the help of userdata script that Install PHP and WordPress. Also EFS utilities are installed and configured on the ec2 instance using a userdata script.  
   
 
   ## Prerequisites
@@ -132,8 +152,163 @@
 
       ![image](./ReadmeImages/28.png)
   
+  7) ***setting up auto scaling group and policies, launch template and cloudwatch metric alarms.***
+  - Create folder and call it **asg**. under this folder create three different files and name them **asg.tf, outputs.tf and variables.tf**
+  
+  - open asg.tf and include the following code which creates the above.
+  ```
+  resource "aws_launch_template" "wordpress_lt" {
+  name_prefix   = "wordpress-lt"
+  image_id      = var.ami_id
+  instance_type = "t3.medium"
+  key_name      = var.key_pair_name
+  
+ user_data = base64encode(templatefile("scripts/userdata.sh", { 
+  endpoint      = var.db_endpoint,
+  mount_script  = file("scripts/mounttarget.sh")
+}))
 
-  7) ***Installation and configuration of WordPress and EFS utilities on the EC2 instance.***
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups = [var.ec2_sg_id]
+
+  }
+}
+resource "aws_autoscaling_group" "wordpress_asg" {
+  name                 = "wordpress-asg"
+  min_size             = 2
+  max_size             = 6
+  desired_capacity     = 2
+  health_check_type    = "ELB"
+  vpc_zone_identifier  = var.subnet_ids
+  target_group_arns    = var.target_group_arns
+
+  launch_template {
+    id      = aws_launch_template.wordpress_lt.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "wordpress-asg-instance"
+    propagate_at_launch = true
+  }
+}
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "wordpress_scale_up"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.wordpress_asg.name
+}
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "wordpress-high-cpu"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "70"
+  
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.wordpress_asg.name
+  }
+
+  alarm_description = "Scale up if CPU > 70% for 2 periods"
+  alarm_actions     = [aws_autoscaling_policy.scale_up.arn]
+}
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "wordpress_scale_down"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.wordpress_asg.name
+}
+resource "aws_cloudwatch_metric_alarm" "low_cpu" {
+  alarm_name          = "wordpress-low-cpu"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "30"
+  
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.wordpress_asg.name
+  }
+
+  alarm_description = "Scale down if CPU < 30% for 2 periods"
+  alarm_actions     = [aws_autoscaling_policy.scale_down.arn]
+}
+```
+
+- open variables.tf and input the variables. do same for outputs.tf
+
+```
+variable "ami_id" {
+  description = "AMI ID for instances"
+  type        = string
+}
+
+variable "key_name" {
+  description = "EC2 key pair name"
+  type        = string
+}
+
+variable "security_group_ids" {
+  description = "List of security group IDs"
+  type        = list(string)
+}
+
+variable "db_endpoint" {
+  description = "RDS endpoint URL"
+  type        = string
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+}
+
+variable "db_user" {
+  description = "Database username"
+  type        = string
+  sensitive   = true
+}
+
+variable "password" {
+  description = "Database password"
+  type        = string
+  sensitive   = true
+}
+
+variable "key_pair_name" {
+  description = "ec2 key name"
+  type        = string
+}
+
+variable "ec2_sg_id" {
+  type = string
+}
+
+variable "subnet_ids" {
+  type        = list(string)
+  description = "List of public subnet IDs for the ASG"
+}
+
+variable "target_group_arns" {
+  type        = list(string)
+  description = "List of Target Group ARNs for the Auto Scaling Group"
+}
+
+variable "vpc_id" {}
+```
+
+
+
+  8)***Installation and configuration of WordPress and EFS utilities on the EC2 instance.***
   * Create a folder and call it **scripts**. 
   * Under this folder create two different files and name them **userdata.sh** and **mounttarget.sh**
   * Open userdata.sh and paste the script that installs WordPress on the instance.
@@ -203,8 +378,79 @@ Now open mounttarget.sh and paste the script that installs EFS utilities and aut
   * Create a file and call it **main.tf**.
   * Open this file and create the following Modules; 
 
-    ![image](./ReadmeImages/29.png),
-    ![image](./ReadmeImages/30.png)
+  ```
+  resource "aws_lb_target_group" "wordpress" {
+  name     = "wordpress-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.subnet.vpc_id
+
+  health_check {
+    path                = "/"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    matcher             = "200-399"
+  }
+}
+
+# module code to create the ec2 instance with user data
+module "ec2" {
+  source        = "./ec2"
+  key_pair_name = var.key_pair_name
+  vpc_id        = module.subnet.vpc_id
+  subnet_id     = module.subnet.public1_subnet_id
+  db_endpoint   = module.database.db_endpoint
+}
+
+module "subnet" {
+  source                     = "./subnet"
+  private1_cidr_block        = var.private1_cidr_block
+  private2_cidr_block        = var.private2_cidr_block
+  public1_cidr_block         = var.public1_cidr_block
+  public2_cidr_block         = var.public2_cidr_block
+  private1_availability_zone = var.private1_availability_zone
+  private2_availability_zone = var.private2_availability_zone
+  public1_availability_zone  = var.public1_availability_zone
+  vpc_cidr_block             = var.vpc_cidr_block
+
+}
+
+module "database" {
+  source             = "./database"
+  password           = var.password
+  instance_class     = var.instance_class
+  private1_subnet_id = module.subnet.private1_subnet_id
+  private2_subnet_id = module.subnet.private2_subnet_id
+  public1_subnet_id  = module.subnet.public1_subnet_id
+  db_name            = var.db_name
+
+}
+
+module "efs" {
+  source     = "./efs"
+  vpc_id     = module.subnet.vpc_id
+  subnet_ids = module.subnet.private_subnet_ids
+}
+
+
+module "asg" {
+  source             = "./asg"
+  key_pair_name      = var.key_pair_name
+  db_name            = var.db_name
+  password           = var.password
+  security_group_ids = [module.ec2.ec2_sg_id]
+  ami_id             = module.ec2.latest_amazon_linux_image_id
+  db_endpoint        = module.database.db_endpoint
+  key_name           = var.key_pair_name
+  db_user            = var.db_user
+  ec2_sg_id          = module.ec2.ec2_sg_id
+  subnet_ids         = module.subnet.public_subnet_ids
+  vpc_id             = module.subnet.vpc_id
+  target_group_arns  = [aws_lb_target_group.wordpress.arn] #module.asg.wordpress_arn]
+}
+```
 
 
 Move to the terraform directory where all the files are located 
@@ -292,12 +538,11 @@ and get a prompt to either say *yes*  for the infrastructure to be created or *n
 ## 😊 Well Done everyone 😊
 
 
-# Conclusion & Key Takeaways
-* Terraform simplifies and automates WordPress deployment on AWS
-* AWS services ensure scalability, security, and automation
-* The architecture balances public access with private security
-
-
+ ****Outcome/Benefits:****
+   - **Reduced deployment time **from 4 hours (manual) → 10 minutes(automated)**.  
+   - **Improved uptime with EFS (no data loss if EC2 fails).  
+   - **Scalable** – Handle traffic spikes by adding EC2 instances.  
+   - **Disaster recovery** – Terraform lets you rebuild infrastructure in minutes. 
 
 
 

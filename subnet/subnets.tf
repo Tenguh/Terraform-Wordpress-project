@@ -20,7 +20,7 @@ resource "aws_subnet" "public1" {
 
 resource "aws_subnet" "public2" {    
   vpc_id     = aws_vpc.wordpress_vpc.id
-  cidr_block = var.public1_cidr_block
+  cidr_block = var.public2_cidr_block
   availability_zone = var.public1_availability_zone
   map_public_ip_on_launch = false 
 
